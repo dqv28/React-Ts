@@ -2,17 +2,20 @@ import React from 'react'
 import { Button, Form, Input, message, Upload } from 'antd';
 import { UploadOutlined } from '@ant-design/icons';
 import type { UploadProps } from 'antd';
-import {NavLink} from 'react-router-dom'
-
-type Props = {}
+import {NavLink, useNavigate} from 'react-router-dom'
+import { useForm } from 'react-hook-form';
+import IProduct from '../../interfaces/product';
+import { useAddProductMutation } from '../../services/product';
 
 const props: UploadProps = {
     name: 'file',
-    action: 'https://www.mocky.io/v2/5cc8019d300000980a055e76',
+    action: 'https://api.cloudinary.com/v1_1/dywccbjry/image/upload',
     headers: {
       authorization: 'authorization-text',
     },
     onChange(info) {
+        console.log(info);
+        
       if (info.file.status !== 'uploading') {
         console.log(info.file, info.fileList);
       }
@@ -24,9 +27,15 @@ const props: UploadProps = {
     },
   };
 
-const ProductAdd = (props: Props) => {
-    const onFinish = (values: any) => {
-        console.log('Success:', values);
+const ProductAdd = () => {
+    const {register, handleSubmit, formState: {errors}} = useForm<IProduct>()
+    const [addProduct] = useAddProductMutation()
+    const navigate = useNavigate()
+    const onHandleAdd = (product: any) => {
+        console.log(product.imgUrl.file.name);
+        addProduct({...product, imgUrl: product.imgUrl.file.name})
+        message.info('Add product successfully.')
+        navigate('/products')
     };
 
     const onFinishFailed = (errorInfo: any) => {
@@ -40,7 +49,7 @@ const ProductAdd = (props: Props) => {
                 labelCol={{ span: 8 }}
                 wrapperCol={{ span: 8 }}
                 initialValues={{ remember: true }}
-                onFinish={onFinish}
+                onFinish={handleSubmit(onHandleAdd)}
                 onFinishFailed={onFinishFailed}
                 autoComplete="off"
             >
@@ -49,7 +58,7 @@ const ProductAdd = (props: Props) => {
                     name="name"
                     rules={[{ required: true, message: 'Please input name!' }]}
                 >
-                    <Input />
+                    <Input {...register('name')}/>
                 </Form.Item>
 
                 <Form.Item
@@ -67,7 +76,7 @@ const ProductAdd = (props: Props) => {
                     name="price"
                     rules={[{ required: true, message: 'Please input price!' }]}
                 >
-                    <Input />
+                    <Input  {...register('price')}/>
                 </Form.Item>
 
                 <Form.Item
@@ -75,11 +84,11 @@ const ProductAdd = (props: Props) => {
                     name="quantity"
                     rules={[{ required: true, message: 'Please input quantity!' }]}
                 >
-                    <Input />
+                    <Input  {...register('quantity')}/>
                 </Form.Item>
 
                 <Form.Item wrapperCol={{ offset: 8, span: 16 }}>
-                    <Button type="primary" htmlType="submit">
+                    <Button type="primary" htmlType='submit'>
                         Add
                     </Button>
                     <NavLink to={`/products`}>
